@@ -1,0 +1,602 @@
+<!doctype html>
+<html lang="vi">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>ArcFace Face Recognition Web Dashboard & Live Demo</title>
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@400;500;600;700;800&display=swap"
+      rel="stylesheet"
+    />
+    <!-- MathJax Configuration & CDN for LaTeX Math rendering -->
+    <script>
+      window.MathJax = {
+        tex: {
+          inlineMath: [['$', '$'], ['\\(', '\\)']],
+          displayMath: [['$$', '$$'], ['\\[', '\\]']]
+        },
+        options: {
+          skipHtmlTags: ['script', 'noscript', 'style', 'textarea', 'pre', 'code']
+        }
+      };
+    </script>
+    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <!-- Chart.js CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- ONNX Runtime Web CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/onnxruntime-web/dist/ort.min.js"></script>
+    <!-- TensorFlow.js and BlazeFace CDN for Client-side Face Detection -->
+    <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@3.18.0/dist/tf.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/face_detection/face_detection.js" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@tensorflow-models/face-detection@1.0.2/dist/face-detection.min.js"></script>
+    <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
+    <script
+      id="MathJax-script"
+      async
+      src="https://cdn.jsdelivr.net/npm/mathjax@3/MathJax-v3/latest.js?config=TeX-mml-chtml"
+    ></script>
+    <!-- CSS Link -->
+    <link rel="stylesheet" href="style.css" />
+  </head>
+  <body>
+    <div class="app-container">
+      <!-- Sidebar Navigation -->
+      <aside class="sidebar">
+        <div class="sidebar-header">
+          <div class="logo-icon">
+            <svg
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2.5"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            >
+              <path
+                d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"
+              ></path>
+              <polyline points="3.27 6.96 12 12.01 20.73 6.96"></polyline>
+              <line x1="12" y1="22.08" x2="12" y2="12"></line>
+            </svg>
+          </div>
+          <h2>ArcFace Hub</h2>
+        </div>
+
+        <nav class="nav-menu">
+          <a href="#dashboard" class="nav-item active" data-tab="dashboard">
+            <svg
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            >
+              <rect x="3" y="3" width="7" height="7"></rect>
+              <rect x="14" y="3" width="7" height="7"></rect>
+              <rect x="14" y="14" width="7" height="7"></rect>
+              <rect x="3" y="14" width="7" height="7"></rect>
+            </svg>
+            <span>Dashboard</span>
+          </a>
+
+          <a href="#live-demo" class="nav-item" data-tab="live-demo">
+            <svg
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            >
+              <path
+                d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"
+              ></path>
+              <circle cx="12" cy="13" r="4"></circle>
+            </svg>
+            <span>Live Demo 1:1</span>
+          </a>
+          <a
+            href="#webcam-realtime"
+            class="nav-item"
+            data-tab="webcam-realtime"
+          >
+            <svg
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            >
+              <path
+                d="M23 7a2 2 0 0 0-2-2H3a2 2 0 0 0-2 2v10a2 2 0 0 0 2 2h18a2 2 0 0 0 2-2V7z"
+              ></path>
+              <path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
+              <circle cx="9" cy="7" r="4"></circle>
+            </svg>
+            <span>Webcam Real-time</span>
+          </a>
+
+          <a
+            href="#training-process"
+            class="nav-item"
+            data-tab="training-process"
+          >
+            <svg
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            >
+              <path
+                d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"
+              ></path>
+            </svg>
+            <span>Quy trình train</span>
+          </a>
+
+          <a
+            href="#robustness-evaluation"
+            class="nav-item"
+            data-tab="robustness-evaluation"
+          >
+            <svg
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            >
+              <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path>
+            </svg>
+            <span>Đánh giá Robustness</span>
+          </a>
+
+          <a
+            href="#sota-techniques"
+            class="nav-item"
+            data-tab="sota-techniques"
+          >
+            <svg
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            >
+              <polygon points="12 2 2 7 12 12 22 7 12 2"></polygon>
+              <polyline points="2 17 12 22 22 17"></polyline>
+              <polyline points="2 12 12 17 22 12"></polyline>
+            </svg>
+            <span>Kỹ thuật SOTA</span>
+          </a>
+        </nav>
+
+        <div class="sidebar-footer">
+          <p>Môn học: Lập trình AI</p>
+        </div>
+      </aside>
+
+      <!-- Main Content Area -->
+      <main class="main-content">
+        <!-- HEADER -->
+        <header class="content-header">
+          <div class="title-section">
+            <h1 id="page-title">Hệ thống Nhận diện Khuôn mặt ArcFace</h1>
+            <p class="subtitle">
+              Ứng dụng IResNet-50 và Additive Angular Margin Loss
+            </p>
+          </div>
+          <div class="tech-tags">
+            <span class="tag pytorch">PyTorch</span>
+            <span class="tag onnx">ONNX</span>
+            <span class="tag python">Pure Python RecIO</span>
+          </div>
+        </header>
+
+        <!-- TAB 1: DASHBOARD -->
+        <div id="tab-dashboard" class="tab-panel active">
+          <!-- Stat Cards -->
+          <div class="stats-grid">
+            <div class="stat-card">
+              <div class="card-icon blue">
+                <svg
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                >
+                  <rect x="2" y="2" width="20" height="8" rx="2" ry="2"></rect>
+                  <rect x="2" y="14" width="20" height="8" rx="2" ry="2"></rect>
+                  <line x1="6" y1="6" x2="6.01" y2="6"></line>
+                  <line x1="6" y1="18" x2="6.01" y2="18"></line>
+                </svg>
+              </div>
+              <div class="card-info">
+                <h3>Mô hình Backbone</h3>
+                <p class="value">IResNet-50</p>
+                <span class="label">Improved ResNet (43.6M Params)</span>
+              </div>
+            </div>
+
+            <div class="stat-card">
+              <div class="card-icon purple">
+                <svg
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                >
+                  <path
+                    d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"
+                  ></path>
+                </svg>
+              </div>
+              <div class="card-info">
+                <h3>Kích thước Đặc trưng</h3>
+                <p class="value">512-D</p>
+                <span class="label">Normalized Face Embedding</span>
+              </div>
+            </div>
+
+            <div class="stat-card">
+              <div class="card-icon green">
+                <svg
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                >
+                  <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
+                  <circle cx="9" cy="7" r="4"></circle>
+                  <path d="M23 21v-2a4 4 0 0 0-3-3.87"></path>
+                  <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
+                </svg>
+              </div>
+              <div class="card-info">
+                <h3>Quy mô Dữ liệu</h3>
+                <p class="value">10,572 IDs</p>
+                <span class="label">494,149 ảnh (Casia-WebFace)</span>
+              </div>
+            </div>
+
+            <div class="stat-card">
+              <div class="card-icon orange">
+                <svg
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                >
+                  <circle cx="12" cy="12" r="10"></circle>
+                  <polyline points="12 6 12 12 16 14"></polyline>
+                </svg>
+              </div>
+              <div class="card-info">
+                <h3>Độ trễ suy luận</h3>
+                <p class="value">3.6 ms</p>
+                <span class="label">Đo trên NVIDIA GPU (Batch=1)</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Section: Evaluation Reports -->
+          <div class="dashboard-section-header">
+            <h2>Đánh giá Hiệu năng Mô hình</h2>
+            <span class="badge">Thông số từ finetuned_best.pth</span>
+          </div>
+
+          <div class="evaluation-grid">
+            <!-- Table 1: Tổng hợp các tập dữ liệu -->
+            <div class="panel-card evaluation-card">
+              <h3>1. Kết quả tổng hợp các tập dữ liệu</h3>
+              <div class="table-responsive">
+                <table class="evaluation-table">
+                  <thead>
+                    <tr>
+                      <th>Tập dữ liệu</th>
+                      <th>Accuracy (%)</th>
+                      <th>EER</th>
+                      <th>AUC</th>
+                      <th>F1-Score</th>
+                      <th>Ngưỡng L2</th>
+                      <th>Ngưỡng Cos</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr class="highlight-row">
+                      <td><strong>LFW</strong></td>
+                      <td><span class="text-green">98.53% ± 0.64%</span></td>
+                      <td>0.0170</td>
+                      <td>0.9970</td>
+                      <td>0.9852</td>
+                      <td>1.57</td>
+                      <td>0.215</td>
+                    </tr>
+                    <tr>
+                      <td><strong>AGEDB_30</strong></td>
+                      <td>87.23% ± 1.88%</td>
+                      <td>0.1278</td>
+                      <td>0.9447</td>
+                      <td>0.8697</td>
+                      <td>1.68</td>
+                      <td>0.157</td>
+                    </tr>
+                    <tr>
+                      <td><strong>CFP_FP</strong></td>
+                      <td>88.30% ± 1.73%</td>
+                      <td>0.1266</td>
+                      <td>0.9425</td>
+                      <td>0.8773</td>
+                      <td>1.73</td>
+                      <td>0.136</td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+
+            <!-- Table 2: Điểm vận hành bảo mật -->
+            <div class="panel-card evaluation-card">
+              <h3>2. Điểm vận hành bảo mật (TPR @ FAR)</h3>
+              <div class="table-responsive">
+                <table class="evaluation-table">
+                  <thead>
+                    <tr>
+                      <th>Tập dữ liệu</th>
+                      <th>TPR @ FAR=10%</th>
+                      <th>TPR @ FAR=1%</th>
+                      <th>TPR @ FAR=0.1%</th>
+                      <th>TPR @ FAR=0.01% (*)</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr class="highlight-row">
+                      <td><strong>LFW</strong></td>
+                      <td>99.37%</td>
+                      <td><span class="text-blue">98.00%</span></td>
+                      <td>94.73%</td>
+                      <td>57.47%</td>
+                    </tr>
+                    <tr>
+                      <td><strong>AGEDB_30</strong></td>
+                      <td>84.53%</td>
+                      <td>57.97%</td>
+                      <td>33.33%</td>
+                      <td>17.23%</td>
+                    </tr>
+                    <tr>
+                      <td><strong>CFP_FP</strong></td>
+                      <td>85.77%</td>
+                      <td>70.23%</td>
+                      <td>49.23%</td>
+                      <td>22.69%</td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+              <p class="small-note">
+                (*) TPR @ FAR = 0.01% mang tính tham khảo do số lượng cặp
+                negative trong các tập validation giới hạn ở 3,000 cặp.
+              </p>
+            </div>
+          </div>
+
+          <div class="evaluation-grid second-row">
+            <!-- Table 3: Không gian đặc trưng -->
+            <div class="panel-card evaluation-card">
+              <h3>3. Đặc tính không gian đặc trưng (Embedding Space)</h3>
+              <div class="table-responsive">
+                <table class="evaluation-table">
+                  <thead>
+                    <tr>
+                      <th>Tập dữ liệu</th>
+                      <th>Sim Pos (Intra)</th>
+                      <th>Sim Neg (Inter)</th>
+                      <th>FDR (Fisher Ratio)</th>
+                      <th>Embedding L2 Norm</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr class="highlight-row">
+                      <td><strong>LFW</strong></td>
+                      <td>0.4976 ± 0.1413</td>
+                      <td>0.0243 ± 0.0749</td>
+                      <td><span class="text-green">8.7614</span></td>
+                      <td>40.7556 ± 4.8898</td>
+                    </tr>
+                    <tr>
+                      <td><strong>AGEDB_30</strong></td>
+                      <td>0.2789 ± 0.1235</td>
+                      <td>0.0487 ± 0.0791</td>
+                      <td>2.4631</td>
+                      <td>39.8665 ± 4.7970</td>
+                    </tr>
+                    <tr>
+                      <td><strong>CFP_FP</strong></td>
+                      <td>0.2708 ± 0.1331</td>
+                      <td>0.0298 ± 0.0697</td>
+                      <td>2.5735</td>
+                      <td>36.8843 ± 7.7390</td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+              <p class="small-note">
+                FDR (Fisher Discriminant Ratio) đo độ tách biệt của hai phân
+                phối. Chỉ số này càng cao thì mô hình phân biệt khuôn mặt càng
+                tốt và ít bị nhầm lẫn.
+              </p>
+            </div>
+
+            <!-- Block 4: Độ bền bỉ ngoại cảnh -->
+            <div class="panel-card evaluation-card robustness-section">
+              <h3>4. Độ bền bỉ ngoại cảnh (Robustness Metrics)</h3>
+              <div class="robustness-metrics">
+                <div class="robust-item">
+                  <div class="robust-header">
+                    <span
+                      >Pose Robustness (Độ bền góc quay mặt - LFW vs
+                      CFP-FP)</span
+                    >
+                    <strong class="text-orange">-10.23% Accuracy</strong>
+                  </div>
+                  <div
+                    class="progress-bar-container"
+                    style="
+                      background: rgba(255, 255, 255, 0.05);
+                      height: 6px;
+                      border-radius: 3px;
+                      overflow: hidden;
+                      margin: 0.25rem 0;
+                    "
+                  >
+                    <div
+                      class="progress-bar-fill orange"
+                      style="width: 89.77%; height: 100%"
+                    ></div>
+                  </div>
+                  <p class="small-note">
+                    Độ suy giảm Accuracy càng thấp chứng tỏ mô hình xử lý góc
+                    nghiêng càng tốt.
+                  </p>
+                </div>
+
+                <div class="robust-item">
+                  <div class="robust-header">
+                    <span
+                      >Age Robustness (Độ bền tuổi tác - LFW vs AgeDB-30)</span
+                    >
+                    <strong class="text-orange">-11.30% Accuracy</strong>
+                  </div>
+                  <div
+                    class="progress-bar-container"
+                    style="
+                      background: rgba(255, 255, 255, 0.05);
+                      height: 6px;
+                      border-radius: 3px;
+                      overflow: hidden;
+                      margin: 0.25rem 0;
+                    "
+                  >
+                    <div
+                      class="progress-bar-fill orange"
+                      style="width: 88.7%; height: 100%"
+                    ></div>
+                  </div>
+                  <p class="small-note">
+                    Độ suy giảm càng thấp chứng tỏ mô hình ít bị ảnh hưởng bởi
+                    sự lão hóa của khuôn mặt.
+                  </p>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Section: Visual Analysis Plots -->
+          <div class="dashboard-section-header">
+            <h2>Biểu đồ Phân tích Trực quan</h2>
+            <span class="badge">Đồ thị kết quả đánh giá</span>
+          </div>
+
+          <div class="plots-grid">
+            <div class="panel-card plot-card">
+              <h3>Đường cong ROC (ROC Curves)</h3>
+              <div class="plot-image-wrapper">
+                <img
+                  src="roc_curves.png"
+                  alt="Đường cong ROC"
+                  class="plot-img"
+                />
+              </div>
+            </div>
+            <div class="panel-card plot-card">
+              <h3>
+                Phân phối độ tương đồng Cosine (Cosine Similarity Distributions)
+              </h3>
+              <div class="plot-image-wrapper">
+                <img
+                  src="similarity_distributions.png"
+                  alt="Phân phối độ tương đồng Cosine"
+                  class="plot-img"
+                />
+              </div>
+            </div>
+          </div>
+
+          <!-- Charts Section -->
+          <div class="dashboard-section-header">
+            <h2>Đồ thị Huấn luyện & Khoảng cách</h2>
+            <span class="badge">Chart.js Động</span>
+          </div>
+
+          <div class="charts-grid">
+            <div class="chart-container large">
+              <div class="chart-header">
+                <h3>Lịch sử huấn luyện (Training History)</h3>
+                <span class="badge">Dữ liệu Log thực tế</span>
+              </div>
+              <div class="chart-wrapper">
+                <canvas id="trainingChart"></canvas>
+              </div>
+            </div>
+
+            <div class="chart-container">
+              <div class="chart-header">
+                <h3>Phân phối khoảng cách L2 (LFW)</h3>
+                <span class="badge">Đặc trưng Gom cụm</span>
+              </div>
+              <div class="chart-wrapper">
+                <canvas id="distanceDistributionChart"></canvas>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- TAB 3: LIVE DEMO 1:1 -->
+        <div id="tab-live-demo" class="tab-panel"></div>
+
+        <!-- TAB 3.5: WEBCAM REAL-TIME -->
+        <div id="tab-webcam-realtime" class="tab-panel"></div>
+
+
+
+        <!-- TAB 5: TRAINING PROCESS -->
+        <div id="tab-training-process" class="tab-panel"></div>
+
+        <!-- TAB 6: ROBUSTNESS EVALUATION -->
+        <div id="tab-robustness-evaluation" class="tab-panel"></div>
+
+        <!-- TAB 7: SOTA TECHNIQUES -->
+        <div id="tab-sota-techniques" class="tab-panel"></div>
+      </main>
+    </div>
+
+    <!-- Hidden Canvases for ONNX image preprocessing -->
+    <canvas
+      id="canvas-preprocessing"
+      width="112"
+      height="112"
+      style="display: none"
+    ></canvas>
+
+    <!-- JS Link -->
+    <script src="app.js"></script>
+  </body>
+</html>

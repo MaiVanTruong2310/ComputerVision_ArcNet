@@ -1,0 +1,81 @@
+# Python virtual environments
+venv/
+.venv/
+env/
+ENV/
+bin/
+lib/
+include/
+
+# Python cache and temporary files
+__pycache__/
+**/__pycache__/
+*.py[cod]
+*$py.class
+.pytest_cache/
+.ipynb_checkpoints/
+
+# IDEs and OS files
+.vscode/
+.idea/
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.swp
+.DS_Store
+Thumbs.db
+ehthumbs.db
+
+# Datasets & raw media
+dataset/
+datasets/
+data/
+raw_data/
+*.rec
+*.idx
+*.lst
+
+# Model checkpoints & heavy weights
+checkpoints/
+**/checkpoints/
+checkpoint/
+**/checkpoint/
+check/
+**/check/
+*.pth
+*.pt
+*.onnx
+*.ckpt
+*.bin
+*.h5
+*.weights
+*.pkl
+*.safetensors
+Web/models/*.onnx
+outputs/*.onnx
+
+# Training logs, TensorBoard events & temp outputs
+logs/
+**/logs/
+log/
+*.log
+Log.txt
+events.out.tfevents.*
+outputs/
+**/outputs/
+results/
+**/results/
+evaluation_reports/
+
+# Sensitive files & credentials
+.env
+.env.*
+*.env
+credentials.json
+secrets.json
+*.pem
+*.key
+*.token
+*.cert
+

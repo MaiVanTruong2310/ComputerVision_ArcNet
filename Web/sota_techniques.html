@@ -1,0 +1,309 @@
+<!-- Kỹ thuật SOTA - Split-Pane Interactive Explorer -->
+<style>
+  .sota-explorer {
+    display: grid;
+    grid-template-columns: 360px 1fr;
+    gap: 1.5rem;
+    height: calc(100vh - 180px);
+    align-items: stretch;
+  }
+
+  /* Left list pane */
+  .sota-list-panel {
+    background-color: var(--bg-card);
+    backdrop-filter: var(--glass-blur);
+    border: 1px solid var(--border-color);
+    border-radius: 16px;
+    padding: 1.25rem;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    box-shadow: var(--card-shadow);
+  }
+
+  .sota-category-group {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+
+  .sota-category-title {
+    font-family: 'Outfit', sans-serif;
+    font-size: 0.75rem;
+    font-weight: 700;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    padding-left: 0.5rem;
+    margin-top: 0.5rem;
+    margin-bottom: 0.25rem;
+  }
+
+  .sota-item {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+    padding: 0.85rem 1rem;
+    background-color: rgba(255, 255, 255, 0.02);
+    border: 1px solid rgba(255, 255, 255, 0.04);
+    border-radius: 12px;
+    cursor: pointer;
+    transition: var(--transition-normal);
+  }
+
+  .sota-item:hover {
+    background-color: rgba(255, 255, 255, 0.04);
+    border-color: rgba(255, 255, 255, 0.1);
+    transform: translateX(4px);
+  }
+
+  .sota-item.active {
+    background-color: rgba(79, 70, 229, 0.15);
+    border-color: rgba(99, 102, 241, 0.4);
+    box-shadow: 0 0 15px rgba(79, 70, 229, 0.1);
+  }
+
+  .sota-item h4 {
+    font-family: 'Outfit', sans-serif;
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: var(--text-primary);
+  }
+
+  .sota-item .sota-item-desc {
+    font-size: 0.75rem;
+    color: var(--text-secondary);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  /* Right detail pane */
+  .sota-detail-panel {
+    background-color: var(--bg-card);
+    backdrop-filter: var(--glass-blur);
+    border: 1px solid var(--border-color);
+    border-radius: 16px;
+    padding: 2rem;
+    overflow-y: auto;
+    box-shadow: var(--card-shadow);
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+  }
+
+  .sota-detail-panel.has-content {
+    justify-content: flex-start;
+    gap: 1.5rem;
+    animation: fadeIn 0.35s ease-out forwards;
+  }
+
+  .sota-onboarding {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 1rem;
+    color: var(--text-secondary);
+    text-align: center;
+  }
+
+  .sota-onboarding svg {
+    width: 64px;
+    height: 64px;
+    color: var(--text-muted);
+    stroke-width: 1.2;
+    animation: pulse 2s infinite;
+  }
+
+  @keyframes pulse {
+    0% { transform: scale(1); opacity: 0.6; }
+    50% { transform: scale(1.05); opacity: 1; }
+    100% { transform: scale(1); opacity: 0.6; }
+  }
+
+  .sota-detail-header {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    border-bottom: 1px solid var(--border-color);
+    padding-bottom: 1rem;
+  }
+
+  .sota-detail-header .badge-group {
+    display: flex;
+    gap: 0.5rem;
+  }
+
+  .sota-detail-header h2 {
+    font-family: 'Outfit', sans-serif;
+    font-size: 1.6rem;
+    font-weight: 700;
+    background: linear-gradient(to right, #ffffff, #9ca3af);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+  }
+
+  .sota-detail-section {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+
+  .sota-detail-section h3 {
+    font-family: 'Outfit', sans-serif;
+    font-size: 1.05rem;
+    font-weight: 600;
+    color: var(--color-blue);
+    border-left: 3px solid var(--color-blue);
+    padding-left: 0.5rem;
+  }
+
+  .sota-detail-section p {
+    font-size: 0.9rem;
+    color: var(--text-secondary);
+    line-height: 1.6;
+  }
+
+  /* Code box styles */
+  .sota-code-box {
+    background-color: rgba(0, 0, 0, 0.4);
+    border: 1px solid var(--border-color);
+    border-radius: 12px;
+    padding: 1rem;
+    overflow-x: auto;
+    font-family: 'Courier New', Courier, monospace;
+    font-size: 0.85rem;
+    color: #e5e7eb;
+    line-height: 1.4;
+  }
+
+  .sota-code-box pre {
+    margin: 0;
+  }
+
+  /* Table styling */
+  .sota-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.85rem;
+    margin-top: 0.5rem;
+  }
+
+  .sota-table th, .sota-table td {
+    padding: 0.65rem 1rem;
+    text-align: left;
+    border-bottom: 1px solid var(--border-color);
+  }
+
+  .sota-table th {
+    color: var(--text-muted);
+    font-weight: 600;
+    text-transform: uppercase;
+    font-size: 0.75rem;
+    letter-spacing: 0.5px;
+  }
+
+  .sota-table td strong {
+    color: var(--text-primary);
+  }
+</style>
+
+<div class="sota-explorer">
+  <!-- Left Side: List of 15 SOTA Techniques -->
+  <div class="sota-list-panel">
+    <!-- Nhóm 1: Mô hình & Loss -->
+    <div class="sota-category-group">
+      <div class="sota-category-title">Kiến trúc & Hàm Loss</div>
+      <div class="sota-item" data-tech="iresnet">
+        <h4>1. IResNet-50 Backbone</h4>
+        <div class="sota-item-desc">BatchNorm trước Conv, PReLU, bỏ MaxPool</div>
+      </div>
+      <div class="sota-item" data-tech="arcface">
+        <h4>2. ArcFace Loss</h4>
+        <div class="sota-item-desc">Biên độ phạt góc m=0.4, bán kính s=64</div>
+      </div>
+      <div class="sota-item" data-tech="onnx">
+        <h4>3. Export mô hình ONNX</h4>
+        <div class="sota-item-desc">ONNX Runtime WASM tối ưu suy luận Web</div>
+      </div>
+    </div>
+
+    <!-- Nhóm 2: Data Pipeline -->
+    <div class="sota-category-group">
+      <div class="sota-category-title">Data Pipeline</div>
+      <div class="sota-item" data-tech="recordio">
+        <h4>4. Pure Python RecordIO</h4>
+        <div class="sota-item-desc">Giải mã nhị phân .rec và .idx không dùng MXNet</div>
+      </div>
+      <div class="sota-item" data-tech="flip">
+        <h4>5. Random Horizontal Flip</h4>
+        <div class="sota-item-desc">Lật ảnh trái/phải ngẫu nhiên khi train</div>
+      </div>
+      <div class="sota-item" data-tech="tta">
+        <h4>6. Test-Time Augmentation (TTA)</h4>
+        <div class="sota-item-desc">Gộp vector đặc trưng của ảnh gốc và ảnh lật</div>
+      </div>
+      <div class="sota-item" data-tech="kfold">
+        <h4>7. 10-Fold Cross Validation</h4>
+        <div class="sota-item-desc">Kiểm thử chéo tìm ngưỡng tương đồng tối ưu</div>
+      </div>
+    </div>
+
+    <!-- Nhóm 3: Chiến lược Train -->
+    <div class="sota-category-group">
+      <div class="sota-category-title">Chiến lược Huấn luyện</div>
+      <div class="sota-item" data-tech="lr-warmup">
+        <h4>8. Linear LR Warmup</h4>
+        <div class="sota-item-desc">Khởi động mềm tăng dần LR tránh sốc mạng</div>
+      </div>
+      <div class="sota-item" data-tech="margin-warmup">
+        <h4>9. Margin Warmup</h4>
+        <div class="sota-item-desc">Tăng biên độ m từ 0 tránh lỗi tràn số NaN</div>
+      </div>
+      <div class="sota-item" data-tech="cosine">
+        <h4>10. Cosine Annealing LR</h4>
+        <div class="sota-item-desc">Giảm tốc độ học theo đường cong Cosine mượt</div>
+      </div>
+      <div class="sota-item" data-tech="ema">
+        <h4>11. Exponential Moving Average (EMA)</h4>
+        <div class="sota-item-desc">Mượt trọng số bằng trung bình động lũy thừa</div>
+      </div>
+      <div class="sota-item" data-tech="lr-group">
+        <h4>12. Phân rã nhóm tham số (Finetune)</h4>
+        <div class="sota-item-desc">Backbone dùng LR nhỏ 0.1x, ArcFace dùng 1.0x</div>
+      </div>
+    </div>
+
+    <!-- Nhóm 4: Hiệu năng phần cứng -->
+    <div class="sota-category-group">
+      <div class="sota-category-title">Hiệu năng & Phần cứng</div>
+      <div class="sota-item" data-tech="amp">
+        <h4>13. AMP FP16</h4>
+        <div class="sota-item-desc">Tính toán độ chính xác hỗn hợp tiết kiệm VRAM</div>
+      </div>
+      <div class="sota-item" data-tech="accumulation">
+        <h4>14. Gradient Accumulation</h4>
+        <div class="sota-item-desc">Tích lũy gradient giả lập Batch Size lớn 256</div>
+      </div>
+      <div class="sota-item" data-tech="safeguards">
+        <h4>15. Safeguards & Clip Grad</h4>
+        <div class="sota-item-desc">Giới hạn cosine, tránh chia cho 0, khống chế norm</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Right Side: Detailed Tech Panel -->
+  <div class="sota-detail-panel" id="sota-detail-container">
+    <div class="sota-onboarding">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+        <polygon points="12 2 2 7 12 12 22 7 12 2"></polygon>
+        <polyline points="2 17 12 22 22 17"></polyline>
+        <polyline points="2 12 12 17 22 12"></polyline>
+      </svg>
+      <h3>HỆ THỐNG KIỂM TRA PHƯƠNG PHÁP SOTA</h3>
+      <p>Chọn một kỹ thuật bên trái để xem lý thuyết toán học, công dụng thực tế, giá trị cấu hình và mã nguồn PyTorch tương ứng trong dự án.</p>
+    </div>
+  </div>
+</div>

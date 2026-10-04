@@ -1,0 +1,322 @@
+<!-- Quy trình Huấn luyện & Tối ưu hóa ArcFace -->
+<div class="training-pipeline-wrapper">
+  <!-- Step Progress Header -->
+  <div class="dashboard-section-header">
+    <h2>Quy trình Huấn luyện & Tối ưu hóa</h2>
+    <span class="badge">Từ Dữ liệu Thô đến ONNX Web</span>
+  </div>
+
+  <p
+    class="desc"
+    style="
+      color: var(--text-secondary);
+      font-size: 0.9rem;
+      line-height: 1.6;
+      margin-bottom: 2rem;
+    "
+  >
+    Để xây dựng mô hình nhận diện khuôn mặt có tính bảo mật cao (như ứng dụng
+    PassNote), hệ thống trải qua một pipeline khép kín từ thu thập dữ liệu quy
+    mô lớn, căn chỉnh landmark sinh trắc học, huấn luyện loss góc biên (ArcFace)
+    và tối ưu hóa lượng hóa để chạy trực tiếp trên client.
+  </p>
+
+  <!-- Stepper Layout -->
+  <div class="pipeline-stepper">
+    <!-- STEP 1: DATA COLLECTION -->
+    <div class="pipeline-step-item">
+      <div class="step-sidebar">
+        <div class="step-circle">1</div>
+        <div class="step-line"></div>
+      </div>
+      <div class="step-body-card panel-card">
+        <div class="step-card-header">
+          <span class="step-tag">Giai đoạn 1</span>
+          <h3>Thu thập & Chuẩn bị Dữ liệu (Data Collection)</h3>
+        </div>
+        <p class="step-desc">
+          Nhận diện khuôn mặt yêu cầu tập dữ liệu lớn với độ đa dạng cao về góc
+          chụp, ánh sáng, chủng tộc và độ tuổi để tránh overfitting.
+        </p>
+
+        <div class="step-details-grid">
+          <div class="detail-box">
+            <h4>Tập Huấn luyện chính (Casia-WebFace)</h4>
+            <ul>
+              <li><strong>Số lượng ID:</strong> 10,572 người khác nhau</li>
+              <li><strong>Tổng số ảnh:</strong> 494,149 bức ảnh khuôn mặt</li>
+              <li>
+                <strong>Đặc tính:</strong> Dữ liệu đã được làm sạch nhiễu và lọc
+                trùng lặp tự động bằng mạng CNN.
+              </li>
+            </ul>
+          </div>
+          <div class="detail-box">
+            <h4>Tập Đánh giá chất lượng (Validation)</h4>
+            <ul>
+              <li>
+                <strong>LFW (Labeled Faces in the Wild):</strong> 6,000 cặp ảnh
+                dùng để đánh giá độ chính xác chuẩn.
+              </li>
+              <li>
+                <strong>AgeDB-30:</strong> Tập dữ liệu chênh lệch tuổi tác (lên
+                tới 30 năm) kiểm tra độ bền vững thời gian.
+              </li>
+              <li>
+                <strong>CFP-FP:</strong> Tập dữ liệu góc nghiêng (Frontal vs
+                Profile) kiểm tra độ bền góc xoay mặt.
+              </li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- STEP 2: PREPROCESSING -->
+    <div class="pipeline-step-item">
+      <div class="step-sidebar">
+        <div class="step-circle">2</div>
+        <div class="step-line"></div>
+      </div>
+      <div class="step-body-card panel-card">
+        <div class="step-card-header">
+          <span class="step-tag">Giai đoạn 2</span>
+          <h3>Tiền xử lý Sinh trắc học (Face Alignment & Crop)</h3>
+        </div>
+        <p class="step-desc">
+          Ảnh đầu vào thô có kích thước bất kỳ và góc lệch mặt ngẫu nhiên. Quy
+          trình tiền xử lý chuẩn hóa ảnh về cùng một hệ quy chiếu để mô hình chỉ
+          tập trung học đặc trưng khuôn mặt.
+        </p>
+
+        <div class="pipeline-substeps">
+          <div class="substep">
+            <span class="substep-dot"></span>
+            <div>
+              <strong>Dò tìm Landmark (Facial Landmarks Detection):</strong>
+              <p>
+                Trích xuất tọa độ của 5 điểm mốc quan trọng trên khuôn mặt: tâm
+                mắt trái, tâm mắt phải, đỉnh mũi, khóe miệng trái và khóe miệng
+                phải.
+              </p>
+            </div>
+          </div>
+          <div class="substep">
+            <span class="substep-dot"></span>
+            <div>
+              <strong>Căn chỉnh khuôn mặt (Affine Transformation):</strong>
+              <p>
+                Tính toán ma trận biến đổi hình học xoay, dịch chuyển và co giãn
+                ảnh sao cho hai mắt nằm trên một đường nằm ngang song song và
+                khoảng cách giữa các landmark khớp với tỷ lệ khuôn mặt chuẩn
+                định sẵn.
+              </p>
+            </div>
+          </div>
+          <div class="substep">
+            <span class="substep-dot"></span>
+            <div>
+              <strong>Cắt ảnh & Chuẩn hóa Pixel (Crop & Normalization):</strong>
+              <p>
+                Cắt sát khuôn mặt đã căn chỉnh về kích thước hình vuông cố định
+                <strong>$112 \times 112$ pixel</strong>. Chuẩn hóa giá trị kênh màu RGB từ khoảng $[0, 255]$ về khoảng $[-1, 1]$ theo công thức:
+                <code>pixel = (pixel - 127.5) / 128.0</code>.
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- STEP 3: HYPERPARAMETERS -->
+    <div class="pipeline-step-item">
+      <div class="step-sidebar">
+        <div class="step-circle">3</div>
+        <div class="step-line"></div>
+      </div>
+      <div class="step-body-card panel-card">
+        <div class="step-card-header">
+          <span class="step-tag">Giai đoạn 3</span>
+          <h3>Thiết lập Mô hình & Cấu hình Tham số (Hyperparameters)</h3>
+        </div>
+        <p class="step-desc">
+          Mô hình sử dụng mạng tích chập sâu (Deep CNN) cải tiến cùng với hàm
+          Loss góc biên chuyên biệt cho nhận diện khuôn mặt open-set.
+        </p>
+
+        <div class="params-table-wrapper">
+          <table class="params-table">
+            <thead>
+              <tr>
+                <th>Tham số huấn luyện</th>
+                <th>Giá trị cấu hình</th>
+                <th>Mô tả chi tiết</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><strong>Mạng Backbone</strong></td>
+                <td><span class="text-blue">IResNet-50</span></td>
+                <td>
+                  Mạng ResNet cải tiến với cấu trúc BN-Conv-BN tối ưu hóa luồng
+                  gradient cho trích chọn đặc trưng.
+                </td>
+              </tr>
+              <tr>
+                <td><strong>Đầu ra Embedding</strong></td>
+                <td><strong>512 chiều (512-D)</strong></td>
+                <td>
+                  Vector đặc trưng khuôn mặt được chuẩn hóa $L_2$ về mặt cầu đơn vị ($f \in \mathbb{R}^{512}$).
+                </td>
+              </tr>
+              <tr>
+                <td><strong>Hàm Loss (ArcFace)</strong></td>
+                <td><strong>$m = 0.4$, $s = 64$</strong></td>
+                <td>
+                  Cộng phạt lề góc $m$ trực tiếp vào lớp đúng nhãn nhằm thu hẹp
+                  khoảng cách nội lớp và mở rộng khoảng cách liên lớp.
+                </td>
+              </tr>
+              <tr>
+                <td><strong>Optimizer</strong></td>
+                <td><strong>SGD với Momentum 0.9</strong></td>
+                <td>
+                  Thuật toán tối ưu Gradient Descent ngẫu nhiên truyền thống có
+                  động lượng chống kẹt cực tiểu cục bộ.
+                </td>
+              </tr>
+              <tr>
+                <td><strong>Weight Decay</strong></td>
+                <td><strong>$5 \times 10^{-4}$</strong></td>
+                <td>
+                  Phạt chuẩn L2 trọng số tránh mô hình bị quá khớp
+                  (Regularization).
+                </td>
+              </tr>
+              <tr>
+                <td><strong>Batch Size</strong></td>
+                <td><strong>128</strong></td>
+                <td>
+                  Số lượng ảnh xử lý đồng thời trên mỗi bước lặp của card đồ
+                  họa.
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- STEP 4: TRAINING STAGE -->
+    <div class="pipeline-step-item">
+      <div class="step-sidebar">
+        <div class="step-circle">4</div>
+        <div class="step-line"></div>
+      </div>
+      <div class="step-body-card panel-card">
+        <div class="step-card-header">
+          <span class="step-tag">Giai đoạn 4</span>
+          <h3>Quá trình Huấn luyện & Giảm lr (Training Stage)</h3>
+        </div>
+        <p class="step-desc">
+          Huấn luyện lan truyền ngược (Backpropagation) trên GPU NVIDIA hiệu
+          năng cao trong 25 epochs.
+        </p>
+
+        <div class="training-flow-details">
+          <div class="flow-item">
+            <h5>1. Khởi động Warmup (Epoch 0)</h5>
+            <p>
+              Bắt đầu với LR nhỏ ($10^{-4}$) trong epoch đầu tiên để ổn định
+              trọng số khởi tạo ngẫu nhiên, tránh bùng nổ gradient.
+            </p>
+          </div>
+          <div class="flow-item">
+            <h5>2. Chu kỳ Cosine Annealing decay</h5>
+            <p>
+              Sau epoch 1, learning rate cực đại giảm dần về gần 0 theo đồ thị
+              hình Cosine, giúp mô hình hội tụ mượt mà ở các epoch cuối.
+            </p>
+          </div>
+          <div class="flow-item">
+            <h5>3. Đánh giá Validation định kỳ</h5>
+            <p>
+              Sau mỗi epoch huấn luyện, hệ thống tự động chạy xác minh trên các
+              tập LFW, AgeDB-30, CFP-FP để kiểm tra độ chính xác và lưu lại
+              checkpoint có kết quả LFW cao nhất làm model tốt nhất.
+            </p>
+          </div>
+        </div>
+
+        <div class="code-box-title">
+          Đoạn mã cấu hình LR Scheduler (PyTorch)
+        </div>
+        <pre
+          class="code-block"
+        ><code>import torch.optim.lr_scheduler as lr_scheduler
+
+# Khởi tạo optimizer SGD
+optimizer = torch.optim.SGD(model.parameters(), lr=0.1, momentum=0.9, weight_decay=5e-4)
+
+# Cấu hình Cosine Annealing Learning Rate
+scheduler = lr_scheduler.CosineAnnealingLR(optimizer, T_max=24, eta_min=1e-5)
+
+for epoch in range(25):
+    train_one_epoch(model, train_loader, optimizer, loss_fn)
+    scheduler.step() # Cập nhật Learning Rate cho epoch tiếp theo</code></pre>
+      </div>
+    </div>
+
+    <!-- STEP 5: TUNE & EXPORT -->
+    <div class="pipeline-step-item">
+      <div class="step-sidebar">
+        <div class="step-circle">5</div>
+        <div class="step-line-last"></div>
+      </div>
+      <div class="step-body-card panel-card">
+        <div class="step-card-header">
+          <span class="step-tag">Giai đoạn 5</span>
+          <h3>Tinh chỉnh & Xuất Mô hình (Fine-tuning & ONNX Export)</h3>
+        </div>
+        <p class="step-desc">
+          Chuẩn bị mô hình để triển khai thực tế trên môi trường Serverless
+          (Trình duyệt web và thiết bị di động).
+        </p>
+
+        <div class="tuning-steps">
+          <div class="tune-card">
+            <h5>1. Tinh chỉnh (Fine-tuning)</h5>
+            <p>
+              Nạp lại trọng số của mô hình tốt nhất, đóng băng các tầng tích
+              chập ban đầu (Feature Extractor) và chỉ cho học tiếp các tầng
+              Dense cuối với learning rate cực nhỏ ($10^{-5}$) trên tập dữ liệu
+              đặc thù để tối ưu hóa tỷ lệ phân tách FDR.
+            </p>
+          </div>
+
+          <div class="tune-card">
+            <h5>2. Xuất ONNX (Model Export)</h5>
+            <p>
+              Chuyển đổi đồ thị tính toán của PyTorch sang định dạng ONNX tiêu
+              chuẩn để chạy độc lập phần cứng thông qua script:
+            </p>
+            <pre
+              class="code-block"
+              style="margin-top: 0.5rem"
+            ><code>python export_onnx.py --checkpoint check/tune/model/finetuned_best.pth</code></pre>
+          </div>
+
+          <div class="tune-card">
+            <h5>3. Client Runtime Optimization</h5>
+            <p>
+              Sử dụng công nghệ <strong>ONNX Runtime Web (WASM)</strong> kết hợp
+              SIMD và đa luồng trên trình duyệt để tăng tốc độ suy luận, rút
+              ngắn thời gian trích xuất đặc trưng khuôn mặt xuống dưới 20ms mà
+              không cần GPU chuyên dụng.
+            </p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

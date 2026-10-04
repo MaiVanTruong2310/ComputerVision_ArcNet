@@ -1,0 +1,22 @@
+# Cơ bản
+numpy
+opencv-python
+matplotlib
+tqdm
+
+# Framework học sâu
+torch
+torchvision
+
+# Đồ thị và Đánh giá
+scikit-learn
+scipy
+Pillow
+
+# Hỗ trợ logging và cấu hình
+pyyaml
+tensorboard
+
+
+#export
+onnx

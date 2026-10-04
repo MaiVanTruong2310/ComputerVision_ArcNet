@@ -1,0 +1,436 @@
+<!-- CORS / Local server warning banner -->
+
+<div class="demo-layout">
+  <!-- Control panel & presets -->
+  <div class="demo-controls">
+    <div class="panel-card">
+      <h3>Trạng thái Hệ thống</h3>
+
+      <!-- BlazeFace Status -->
+      <div
+        class="onnx-loader-status"
+        id="blazeface-status"
+        style="margin-bottom: 0.5rem"
+      >
+        <span class="status-indicator yellow" id="blazeface-indicator"></span>
+        <span id="blazeface-status-text">Đang tải bộ dò mặt BlazeFace...</span>
+      </div>
+
+      <!-- ONNX Status -->
+      <div class="onnx-loader-status" id="onnx-status-text-container">
+        <span class="status-indicator yellow" id="onnx-indicator"></span>
+        <span id="onnx-status-text">Đang chờ nạp mô hình ArcFace...</span>
+      </div>
+
+      <p class="small-note" style="margin-top: 0.5rem; line-height: 1.4">
+        Kích thước mô hình ArcFace ~160MB. Mô hình được tự động nạp ngầm bằng
+        WebAssembly (WASM) khi mở trang web.
+      </p>
+
+      <!-- Security Level Selection -->
+      <div
+        class="security-selector-wrapper"
+        style="
+          margin-top: 1rem;
+          border-top: 1px solid var(--border-color);
+          padding-top: 1rem;
+        "
+      >
+        <label
+          for="security-level"
+          style="
+            font-size: 0.85rem;
+            font-weight: 600;
+            color: var(--text-primary);
+            display: block;
+            margin-bottom: 0.5rem;
+          "
+        >
+          🛡️ Cấp độ Bảo mật (Ngưỡng L2)
+        </label>
+        <select
+          id="security-level"
+          style="
+            width: 100%;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid var(--border-color);
+            color: #fff;
+            padding: 0.6rem;
+            border-radius: 8px;
+            font-size: 0.8rem;
+            outline: none;
+            cursor: pointer;
+            transition: border-color 0.2s;
+          "
+        >
+          <option value="1.73">
+            Góc nghiêng & Ngoại cảnh / CFP-FP Standard (Ngưỡng 1.73)
+          </option>
+          <option value="1.68">
+            Tuổi tác & Biến đổi / AgeDB-30 Standard (Ngưỡng 1.68)
+          </option>
+          <option value="1.57">Chính diện / LFW Standard (Ngưỡng 1.57)</option>
+          <option value="1.40">
+            Bảo mật cao / PassNote Default (Ngưỡng 1.40) - Chống sinh
+            đôi/lookalike
+          </option>
+          <option value="1.20" selected>
+            Tuyệt đối / Strict Guard (Ngưỡng 1.20) - Bảo mật nghiêm ngặt
+          </option>
+        </select>
+        <p
+          class="small-note"
+          style="
+            margin-top: 0.5rem;
+            font-size: 0.7rem;
+            color: var(--text-muted);
+            line-height: 1.4;
+          "
+        >
+          Mức <strong>Chính diện / LFW Standard (1.57)</strong> tối ưu cho nhận
+          diện thông thường.
+          <span style="color: #ff9a9e; font-weight: 500">⚠️ Lưu ý:</span> Ngưỡng
+          này dễ bị sinh đôi / anh em ruột vượt qua. Khuyên dùng mức
+          <strong>PassNote Default (1.40)</strong> hoặc
+          <strong>Strict Guard (1.20)</strong> để bảo mật và chống giả mạo /
+          lookalike.
+        </p>
+      </div>
+
+      <!-- Auto Crop Toggle -->
+      <div
+        class="auto-crop-toggle-wrapper"
+        style="
+          margin-top: 1rem;
+          border-top: 1px solid var(--border-color);
+          padding-top: 1rem;
+        "
+      >
+        <label
+          class="toggle-switch-container"
+          style="
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            cursor: pointer;
+          "
+        >
+          <span
+            style="
+              font-size: 0.85rem;
+              font-weight: 600;
+              color: var(--text-primary);
+            "
+          >
+            🤖 Tự động cắt khuôn mặt (Auto Crop)
+          </span>
+          <input
+            type="checkbox"
+            id="toggle-auto-crop"
+            checked
+            style="
+              width: 1.2rem;
+              height: 1.2rem;
+              cursor: pointer;
+              accent-color: #00f2fe;
+            "
+          />
+        </label>
+        <p
+          class="small-note"
+          style="
+            margin-top: 0.5rem;
+            font-size: 0.7rem;
+            color: var(--text-muted);
+            line-height: 1.4;
+          "
+        >
+          Bật để AI tự động tìm và cắt sát mặt. Tắt nếu ảnh bị nhận dạng sai
+          lệch hộp bao (như khi ảnh có chứa mặt nạ, tranh vẽ hoặc nhiều vật thể
+          gây nhiễu).
+        </p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Comparison Area -->
+  <div class="demo-workspace">
+    <div class="images-comparison">
+      <!-- Image 1 -->
+      <div class="image-box-wrapper">
+        <h4>Ảnh khuôn mặt thứ nhất (Image A)</h4>
+        <div class="image-box" id="dropzone-A">
+          <img
+            id="img-preview-A"
+            src=""
+            alt="Image A Preview"
+            style="display: none"
+          />
+          <canvas
+            id="overlay-A"
+            class="face-overlay"
+            style="
+              position: absolute;
+              top: 0;
+              left: 0;
+              width: 100%;
+              height: 100%;
+              pointer-events: none;
+              z-index: 3;
+            "
+          ></canvas>
+          <div class="placeholder-content" id="placeholder-A">
+            <svg
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            >
+              <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+              <polyline points="17 8 12 3 7 8"></polyline>
+              <line x1="12" y1="3" x2="12" y2="15"></line>
+            </svg>
+            <p>Kéo thả ảnh hoặc Click để tải lên</p>
+          </div>
+          <input
+            type="file"
+            id="file-input-A"
+            accept="image/*"
+            style="display: none"
+          />
+          <div class="scan-laser" id="laser-A"></div>
+        </div>
+      </div>
+
+      <!-- VS Circle -->
+      <div class="comparison-vs">
+        <div class="vs-circle">VS</div>
+      </div>
+
+      <!-- Image 2 -->
+      <div class="image-box-wrapper">
+        <h4>Ảnh khuôn mặt thứ hai (Image B)</h4>
+        <div class="image-box" id="dropzone-B">
+          <img
+            id="img-preview-B"
+            src=""
+            alt="Image B Preview"
+            style="display: none"
+          />
+          <canvas
+            id="overlay-B"
+            class="face-overlay"
+            style="
+              position: absolute;
+              top: 0;
+              left: 0;
+              width: 100%;
+              height: 100%;
+              pointer-events: none;
+              z-index: 3;
+            "
+          ></canvas>
+          <div class="placeholder-content" id="placeholder-B">
+            <svg
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            >
+              <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+              <polyline points="17 8 12 3 7 8"></polyline>
+              <line x1="12" y1="3" x2="12" y2="15"></line>
+            </svg>
+            <p>Kéo thả ảnh hoặc Click để tải lên</p>
+          </div>
+          <input
+            type="file"
+            id="file-input-B"
+            accept="image/*"
+            style="display: none"
+          />
+          <div class="scan-laser" id="laser-B"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Run Button -->
+    <div class="action-bar">
+      <button class="action-btn large" id="btn-verify" disabled>
+        Bắt đầu so khớp xác minh
+      </button>
+    </div>
+
+    <!-- Results Dashboard -->
+    <div class="results-card" id="results-display" style="display: none">
+      <div class="results-header">
+        <span class="result-badge" id="match-badge">Đang xử lý</span>
+        <h3 id="result-text">Mô hình đang trích xuất đặc trưng...</h3>
+      </div>
+
+      <!-- AI Input Previews (Visual validation of crop box) -->
+      <div
+        class="ai-input-previews"
+        style="
+          display: flex;
+          justify-content: center;
+          gap: 2rem;
+          margin: 1rem 0;
+          padding: 0.75rem;
+          background: rgba(255, 255, 255, 0.03);
+          border-radius: 8px;
+          border: 1px solid var(--border-color);
+        "
+      >
+        <div style="text-align: center">
+          <div
+            style="
+              font-size: 0.75rem;
+              color: var(--text-muted);
+              margin-bottom: 0.25rem;
+            "
+          >
+            Ảnh đầu vào AI (A)
+          </div>
+          <canvas
+            id="canvas-preview-A"
+            width="112"
+            height="112"
+            style="
+              border-radius: 6px;
+              border: 1px solid rgba(0, 242, 254, 0.3);
+              width: 80px;
+              height: 80px;
+            "
+          ></canvas>
+        </div>
+        <div style="text-align: center">
+          <div
+            style="
+              font-size: 0.75rem;
+              color: var(--text-muted);
+              margin-bottom: 0.25rem;
+            "
+          >
+            Ảnh đầu vào AI (B)
+          </div>
+          <canvas
+            id="canvas-preview-B"
+            width="112"
+            height="112"
+            style="
+              border-radius: 6px;
+              border: 1px solid rgba(0, 242, 254, 0.3);
+              width: 80px;
+              height: 80px;
+            "
+          ></canvas>
+        </div>
+      </div>
+
+      <div class="results-body">
+        <div class="metric-result">
+          <span class="label">Khoảng cách Euclidean ($L_2^2$)</span>
+          <span class="value" id="dist-result-val">1.25</span>
+          <div class="progress-bar-container">
+            <div
+              class="progress-bar-fill"
+              id="dist-progress"
+              style="width: 62%"
+            ></div>
+          </div>
+          <span class="note" id="dist-note">Ngưỡng chấp nhận: &le; 1.20</span>
+        </div>
+
+        <div class="metric-result">
+          <span class="label">Độ tương đồng Cosine (Cosine Similarity)</span>
+          <span class="value" id="cosine-result-val">0.687</span>
+          <div class="progress-bar-container">
+            <div
+              class="progress-bar-fill"
+              id="cosine-progress"
+              style="width: 68.7%"
+            ></div>
+          </div>
+          <span class="note" id="cosine-note"
+            >Ngưỡng chấp nhận (LFW): &ge; 0.215 | Khoảng giá trị: [-1, 1]</span
+          >
+        </div>
+      </div>
+
+      <!-- Embedding Visualizer -->
+      <div
+        class="embedding-visualizer"
+        style="
+          margin-top: 1rem;
+          border-top: 1px solid var(--border-color);
+          padding-top: 1rem;
+          width: 100%;
+        "
+      >
+        <h4
+          style="
+            font-size: 0.85rem;
+            font-weight: 600;
+            color: var(--text-secondary);
+            margin-bottom: 0.75rem;
+          "
+        >
+          Đồ họa đặc trưng trích chọn (512 chiều - Hiển thị 80 chiều đầu)
+        </h4>
+        <div
+          style="
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            margin-bottom: 0.5rem;
+            width: 100%;
+          "
+        >
+          <span
+            style="font-size: 0.75rem; color: var(--text-muted); width: 50px"
+            >Ảnh A:</span
+          >
+          <div
+            id="vector-strip-a"
+            style="
+              display: flex;
+              gap: 2px;
+              flex-grow: 1;
+              height: 16px;
+              overflow: hidden;
+              background: rgba(0, 0, 0, 0.2);
+              border-radius: 3px;
+              border: 1px solid rgba(255, 255, 255, 0.03);
+            "
+          ></div>
+        </div>
+        <div
+          style="display: flex; align-items: center; gap: 0.75rem; width: 100%"
+        >
+          <span
+            style="font-size: 0.75rem; color: var(--text-muted); width: 50px"
+            >Ảnh B:</span
+          >
+          <div
+            id="vector-strip-b"
+            style="
+              display: flex;
+              gap: 2px;
+              flex-grow: 1;
+              height: 16px;
+              overflow: hidden;
+              background: rgba(0, 0, 0, 0.2);
+              border-radius: 3px;
+              border: 1px solid rgba(255, 255, 255, 0.03);
+            "
+          ></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
