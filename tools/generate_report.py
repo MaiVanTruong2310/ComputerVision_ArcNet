@@ -13,8 +13,10 @@ import psutil
 if sys.stdout.encoding != 'utf-8':
     sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding='utf-8')
 
-# Thêm thư mục src vào path
-sys.path.append(os.path.join(os.path.dirname(__file__), 'src'))
+# Thêm thư mục gốc và src vào path
+ROOT_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
+sys.path.append(os.path.join(ROOT_DIR, 'src'))
+sys.path.append(ROOT_DIR)
 
 from config import Config
 from model import get_backbone

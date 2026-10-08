@@ -7,8 +7,10 @@ import re
 from tqdm import tqdm
 import sys
 
-# Thêm thư mục src vào path
-sys.path.append(os.path.join(os.path.dirname(__file__), 'src'))
+# Thêm thư mục gốc và src vào sys.path
+ROOT_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
+sys.path.append(os.path.join(ROOT_DIR, 'src'))
+sys.path.append(ROOT_DIR)
 
 import io
 

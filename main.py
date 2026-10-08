@@ -18,15 +18,17 @@ from utils import load_bin
 import torch
 
 def main():
-    parser = argparse.ArgumentParser(description='ArcFace Training and Evaluation')
-    parser.add_argument('--mode', type=str, default='train', choices=['train', 'eval'],
-                        help='Chế độ: train (huấn luyện) hoặc eval (đánh giá)')
+    parser = argparse.ArgumentParser(description='ArcFace Training, Evaluation, and Export')
+    parser.add_argument('--mode', type=str, default='train', choices=['train', 'eval', 'export'],
+                        help='Chế độ: train (huấn luyện), eval (đánh giá), export (xuất ONNX)')
     parser.add_argument('--dataset', type=str, default=Config.dataset_path,
                         help='Đường dẫn đến thư mục dữ liệu')
     parser.add_argument('--backbone', type=str, default=None,
-                        help='Đường dẫn đến file checkpoint (.pth) để eval')
+                        help='Đường dẫn đến file checkpoint (.pth) để eval hoặc export')
     parser.add_argument('--target', type=str, default='lfw',
                         help='Tên tập dữ liệu evaluation (ví dụ: lfw)')
+    parser.add_argument('--output', type=str, default=None,
+                        help='Đường dẫn xuất file ONNX (khi dùng mode export)')
     
     args = parser.parse_args()
 
@@ -49,7 +51,7 @@ def main():
         
         # Load weights
         state_dict = torch.load(args.backbone, map_location=device, weights_only=False)
-        if 'backbone' in state_dict:
+        if isinstance(state_dict, dict) and 'backbone' in state_dict:
             state_dict = state_dict['backbone']
         model.load_state_dict(state_dict)
         
@@ -67,6 +69,13 @@ def main():
         print(f"KẾT QUẢ ĐÁNH GIÁ [{args.target.upper()}]:")
         print(f"Accuracy: {acc:.4f} +- {std:.4f}")
         print(f"Best Threshold: {threshold:.2f}")
+
+    elif args.mode == 'export':
+        try:
+            from tools.export_onnx import export_to_onnx
+        except ImportError:
+            from export_onnx import export_to_onnx
+        export_to_onnx(checkpoint_path=args.backbone, output_path=args.output)
 
 if __name__ == "__main__":
     main()

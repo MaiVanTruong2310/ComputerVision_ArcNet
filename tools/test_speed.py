@@ -3,8 +3,10 @@ import torch
 import sys
 import os
 
-# Thêm src vào path
-sys.path.append(os.path.join(os.path.dirname(__file__), 'src'))
+# Thêm thư mục gốc và src vào path
+ROOT_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
+sys.path.append(os.path.join(ROOT_DIR, 'src'))
+sys.path.append(ROOT_DIR)
 
 from config import Config
 from dataset import get_dataloader

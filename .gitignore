@@ -27,14 +27,16 @@ __pycache__/
 Thumbs.db
 ehthumbs.db
 
-# Datasets & raw media
+# Datasets, raw media & sample extractions
 dataset/
 datasets/
 data/
 raw_data/
+extracted_samples/
 *.rec
 *.idx
 *.lst
+*.bin
 
 # Model checkpoints & heavy weights
 checkpoints/
@@ -43,30 +45,31 @@ checkpoint/
 **/checkpoint/
 check/
 **/check/
+outputs/
+**/outputs/
+Web/models/*.onnx
+Web/models/*.pth
+Web/models/*.pt
 *.pth
 *.pt
 *.onnx
 *.ckpt
-*.bin
 *.h5
 *.weights
 *.pkl
 *.safetensors
-Web/models/*.onnx
-outputs/*.onnx
 
-# Training logs, TensorBoard events & temp outputs
+# Training logs, TensorBoard events & temp evaluation outputs
 logs/
 **/logs/
 log/
 *.log
 Log.txt
 events.out.tfevents.*
-outputs/
-**/outputs/
+evaluation_reports/
+**/evaluation_reports/
 results/
 **/results/
-evaluation_reports/
 
 # Sensitive files & credentials
 .env
@@ -78,4 +81,3 @@ secrets.json
 *.key
 *.token
 *.cert
-
